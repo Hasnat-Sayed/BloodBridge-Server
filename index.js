@@ -100,16 +100,30 @@ async function run() {
         })
 
         //make volunteer
-        app.patch('/update/user/status', verifyFBToken, async (req, res) => {
-            const { email, status } = req.query;
+        app.patch('/update/user/role', verifyFBToken, async (req, res) => {
+            const { email, role } = req.query;
             const query = { email: email };
 
-            const updataStatus = {
+            const updataRole = {
                 $set: {
-                    status: status
+                    role: role
                 }
             }
-            const result = await userCollections.updateOne(query, updataStatus)
+            const result = await userCollections.updateOne(query, updataRole)
+            res.send(result)
+        })
+
+        //make admin
+        app.patch('/update/user/admin', verifyFBToken, async (req, res) => {
+            const { email, role } = req.query;
+            const query = { email: email };
+
+            const updataAdmin = {
+                $set: {
+                    role: role
+                }
+            }
+            const result = await userCollections.updateOne(query, updataAdmin)
             res.send(result)
         })
 
