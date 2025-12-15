@@ -9,6 +9,38 @@ app.use(cors());
 app.use(express.json());
 
 
+const admin = require("firebase-admin");
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8')
+const serviceAccount = JSON.parse(decoded);
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+
+const verifyFBToken = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    // console.log("AUTH HEADER:", authHeader);
+
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+
+    try {
+        const idToken = authHeader.split(' ')[1];
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        console.log("decoded info:", decoded);
+
+        req.decoded_email = decoded.email;
+        next();
+    } catch (error) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+};
+
+
+
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@first-cluster.xds9q0g.mongodb.net/?appName=first-cluster`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -50,7 +82,7 @@ async function run() {
 
 
         //create request
-        app.post('/requests', async (req, res) => {
+        app.post('/requests', verifyFBToken, async (req, res) => {
             const data = req.body;
             data.createdAt = new Date();
             const result = await requestCollections.insertOne(data)
