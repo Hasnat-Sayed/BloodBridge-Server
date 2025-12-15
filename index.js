@@ -21,8 +21,6 @@ admin.initializeApp({
 const verifyFBToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
-    // console.log("AUTH HEADER:", authHeader);
-
     if (!authHeader) {
         return res.status(401).send({ message: 'unauthorized access' });
     }
@@ -71,12 +69,47 @@ async function run() {
             res.send(result)
         })
 
-        //get user info/role
+        //get all users
+        app.get('/users', verifyFBToken, async (req, res) => {
+            const result = await userCollections.find().toArray();
+            res.status(200).send(result)
+        })
+
+
+        //get user role and status
         app.get('/users/role/:email', async (req, res) => {
             const { email } = req.params
             const query = { email: email }
             const result = await userCollections.findOne(query)
             // console.log(result);
+            res.send(result)
+        })
+
+        //update status
+        app.patch('/update/user/status', verifyFBToken, async (req, res) => {
+            const { email, status } = req.query;
+            const query = { email: email };
+
+            const updataStatus = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await userCollections.updateOne(query, updataStatus)
+            res.send(result)
+        })
+
+        //make volunteer
+        app.patch('/update/user/status', verifyFBToken, async (req, res) => {
+            const { email, status } = req.query;
+            const query = { email: email };
+
+            const updataStatus = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await userCollections.updateOne(query, updataStatus)
             res.send(result)
         })
 
