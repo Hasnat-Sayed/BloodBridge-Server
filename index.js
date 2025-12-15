@@ -22,18 +22,19 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
-        // Send a ping to confirm a successful connection
 
         const database = client.db('BloodBridgeDB')
         const userCollections = database.collection('user')
 
+        const requestCollections = database.collection('request')
+
         //save user info
         app.post('/users', async (req, res) => {
             const userInfo = req.body;
-            userInfo.role = "buyer";
+            userInfo.role = "donor";
             userInfo.createdAt = new Date();
+            userInfo.status = 'active';
             const result = await userCollections.insertOne(userInfo);
             res.send(result)
         })
@@ -42,10 +43,27 @@ async function run() {
         app.get('/users/role/:email', async (req, res) => {
             const { email } = req.params
             const query = { email: email }
-            const result = await userCollections.findOne(query) 
+            const result = await userCollections.findOne(query)
             // console.log(result);
             res.send(result)
         })
+
+
+        //create request
+        app.post('/requests', async (req, res) => {
+            const data = req.body;
+            data.createdAt = new Date();
+            const result = await requestCollections.insertOne(data)
+            res.send(result)
+        })
+        // app.get('/manager/products/:email', async (req, res) => {
+        //     const email = req.params.email;
+        //     const query = { managerEmail: email };
+        //     const result = await productCollections.find(query).toArray();
+        //     res.send(result)
+        // })
+
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
