@@ -2,6 +2,8 @@ const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_KEY);
+const crypto = require('crypto');
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -58,6 +60,7 @@ async function run() {
         const userCollections = database.collection('user')
 
         const requestCollections = database.collection('request')
+        const paymentsCollection = database.collection('payments')
 
         //save user info
         app.post('/users', async (req, res) => {
@@ -151,6 +154,63 @@ async function run() {
 
             const totalRequest = await requestCollections.countDocuments(query);
             res.send({ request: result, totalRequest })
+        })
+
+        //payment
+        app.post('/create-payment-checkout', async (req, res) => {
+            const information = req.body;
+            const amount = parseInt(information.donateAmount) * 100;
+            const session = await stripe.checkout.sessions.create({
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'usd',
+                            unit_amount: amount,
+                            product_data: {
+                                name: 'Donation Amount:'
+                            }
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                metadata: {
+                    donorName: information?.donorName
+                },
+                customer_email: information.donorEmail,
+                success_url: `${process.env.SITE_DOMAIN}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.SITE_DOMAIN}/payment-cancelled`,
+            });
+            res.send({ url: session.url })
+        })
+
+        //payment info save to DB
+        app.post('/success-payment', async (req, res) => {
+            const { session_id } = req.query;
+            const session = await stripe.checkout.sessions.retrieve(
+                session_id
+            );
+            // console.log(session);
+            const transactionId = session.payment_intent;
+
+            const isPaymentExist = await paymentsCollection.findOne({ transactionId })
+            if (isPaymentExist) {
+                return res.status(400).send('Already Exist')
+            }
+
+            if (session.payment_status == 'paid') {
+                const paymentInfo = {
+                    amount: session.amount_total / 100,
+                    currency: session.currency,
+                    donorEmail: session.customer_email,
+                    transactionId,
+                    payment_status: session.payment_status,
+                    paidAt: new Date()
+                }
+                const result = await paymentsCollection.insertOne(paymentInfo)
+                return res.send(result)
+            }
+
         })
 
 
