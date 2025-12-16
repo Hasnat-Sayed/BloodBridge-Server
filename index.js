@@ -135,12 +135,23 @@ async function run() {
             const result = await requestCollections.insertOne(data)
             res.send(result)
         })
-        // app.get('/manager/products/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const query = { managerEmail: email };
-        //     const result = await productCollections.find(query).toArray();
-        //     res.send(result)
-        // })
+
+        //get request of user
+        app.get('/my-request', verifyFBToken, async (req, res) => {
+            const email = req.decoded_email;
+            const size = Number(req.query.size)
+            const page = Number(req.query.page)
+            const query = { requester_email: email };
+
+            const result = await requestCollections
+                .find(query)
+                .limit(size)
+                .skip(size * page)
+                .toArray();
+
+            const totalRequest = await requestCollections.countDocuments(query);
+            res.send({ request: result, totalRequest })
+        })
 
 
 
