@@ -179,6 +179,13 @@ async function run() {
             res.send(result)
         })
 
+        //get all pending requests
+        app.get('/pending-requests', async (req, res) => {
+            const query = { donation_status: "pending" }
+            const result = await requestCollections.find(query).toArray()
+            res.send(result)
+        })
+
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
             const information = req.body;
