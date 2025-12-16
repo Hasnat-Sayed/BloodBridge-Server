@@ -186,6 +186,14 @@ async function run() {
             res.send(result)
         })
 
+        //get request details
+        app.get('/details/:id', async (req, res) => {
+            const id = req.params
+            const query = { _id: new ObjectId(id) }
+            const result = await requestCollections.findOne(query)
+            res.send(result);
+        })
+
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
             const information = req.body;
@@ -241,6 +249,12 @@ async function run() {
                 return res.send(result)
             }
 
+        })
+
+        //get all payments
+        app.get('/all-funds', verifyFBToken, async (req, res) => {
+            const result = await paymentsCollection.find().toArray();
+            res.status(200).send(result)
         })
 
 
