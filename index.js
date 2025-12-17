@@ -211,6 +211,14 @@ async function run() {
             res.send(result);
         });
 
+        //delete my request
+        app.delete('/delete-my-request/:id', verifyFBToken, async (req, res) => {
+            const id = req.params
+            const query = { _id: new ObjectId(id) }
+            const result = await requestCollections.deleteOne(query)
+            res.send(result)
+        })
+
 
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
