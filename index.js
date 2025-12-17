@@ -156,26 +156,24 @@ async function run() {
             res.send({ request: result, totalRequest })
         })
 
-        //search request
+        //search donor
         app.get('/search-requests', async (req, res) => {
             const { bloodGroup, district, upazila } = req.query;
-            const query = {};
+            const query = { role: 'donor' };
 
-            if (!query) {
-                return;
-            }
+            
             if (bloodGroup) {
                 const fixed = bloodGroup.replace(/ /g, "+").trim();
-                query.blood_group = fixed;
+                query.blood = fixed;
             }
 
             if (district) {
-                query.recipient_district = district
+                query.district = district
             }
             if (upazila) {
-                query.recipient_upazila = upazila
+                query.upazila = upazila
             }
-            const result = await requestCollections.find(query).toArray();
+            const result = await userCollections.find(query).toArray();
             res.send(result)
         })
 
