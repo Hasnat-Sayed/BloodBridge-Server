@@ -30,7 +30,7 @@ const verifyFBToken = async (req, res, next) => {
     try {
         const idToken = authHeader.split(' ')[1];
         const decoded = await admin.auth().verifyIdToken(idToken);
-        console.log("decoded info:", decoded);
+        // console.log("decoded info:", decoded);
 
         req.decoded_email = decoded.email;
         next();
@@ -161,7 +161,7 @@ async function run() {
             const { bloodGroup, district, upazila } = req.query;
             const query = { role: 'donor' };
 
-            
+
             if (bloodGroup) {
                 const fixed = bloodGroup.replace(/ /g, "+").trim();
                 query.blood = fixed;
@@ -191,6 +191,26 @@ async function run() {
             const result = await requestCollections.findOne(query)
             res.send(result);
         })
+
+        //donate blood /confirm donation
+        app.patch('/donate-blood/:id', verifyFBToken, async (req, res) => {
+            const id = req.params;
+            const { donor_name, donor_email } = req.body;
+
+            const filter = { _id: new ObjectId(id) };
+
+            const updateDoc = {
+                $set: {
+                    donor_name: donor_name,
+                    donor_email: donor_email,
+                    donation_status: 'inprogress',
+                }
+            };
+
+            const result = await requestCollections.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
 
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
