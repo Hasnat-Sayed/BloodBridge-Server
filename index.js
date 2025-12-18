@@ -291,6 +291,25 @@ async function run() {
             res.send(result)
         })
 
+        //stats
+        app.get('/stats', verifyFBToken, async (req, res) => {
+
+            const totalRequest = await requestCollections.countDocuments();
+            const totalDonors = await userCollections.countDocuments({ role: 'donor' })
+            const result = await paymentsCollection.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalAmount: { $sum: '$amount' }
+                    }
+                }
+            ]).toArray();
+
+            const totalFunds = result[0]?.totalAmount || 0;
+            res.send({ totalDonors, totalRequest,totalFunds })
+
+        })
+
 
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
