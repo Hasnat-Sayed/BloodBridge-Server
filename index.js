@@ -219,6 +219,18 @@ async function run() {
             res.send(result)
         })
 
+        //update request
+        app.put('/update/:id', async (req, res) => {
+            const data = req.body;
+            const id = req.params
+            const query = { _id: new ObjectId(id) }
+            const updateRequest = {
+                $set: data
+            }
+            const result = await requestCollections.updateOne(query, updateRequest)
+            res.send(result)
+        })
+
 
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
