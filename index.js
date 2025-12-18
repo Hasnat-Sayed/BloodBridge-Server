@@ -159,6 +159,27 @@ async function run() {
             res.send(result)
         })
 
+        //get all request for admin and volunteer
+        app.get('/all-requests', verifyFBToken, async (req, res) => {
+            const size = Number(req.query.size)
+            const page = Number(req.query.page)
+            const status = req.query.status;
+            const query = {};
+
+            if (status) {
+                query.donation_status = status;
+            }
+
+            const result = await requestCollections
+                .find(query)
+                .limit(size)
+                .skip(size * page)
+                .toArray();
+
+            const totalRequest = await requestCollections.countDocuments(query);
+            res.send({ request: result, totalRequest })
+        })
+
         //get request of user
         app.get('/my-request', verifyFBToken, async (req, res) => {
             const email = req.decoded_email;
