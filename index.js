@@ -72,6 +72,26 @@ async function run() {
             res.send(result)
         })
 
+        //get user info for profile page
+        app.get('/user-profile', verifyFBToken, async (req, res) => {
+            const email = req.decoded_email;
+            const query = { email: email }
+            const result = await userCollections.findOne(query)
+            res.send(result)
+        })
+
+        //update profile info
+        app.patch('/update-profile/:email', async (req, res) => {
+            const email = req.params.email;
+            const updatedData = req.body;
+            const result = await userCollections.updateOne(
+                { email: email },
+                { $set: updatedData }
+            );
+            res.send(result);
+        });
+
+
         //get all users
         app.get('/users', verifyFBToken, async (req, res) => {
             const result = await userCollections.find().toArray();
