@@ -144,7 +144,12 @@ async function run() {
             const email = req.decoded_email;
             const size = Number(req.query.size)
             const page = Number(req.query.page)
+            const status = req.query.status;
             const query = { requester_email: email };
+
+            if (status) {
+                query.donation_status = status;
+            }
 
             const result = await requestCollections
                 .find(query)
@@ -228,6 +233,20 @@ async function run() {
                 $set: data
             }
             const result = await requestCollections.updateOne(query, updateRequest)
+            res.send(result)
+        })
+
+        //done and cancel request 
+        app.patch('/update/request/status', verifyFBToken, async (req, res) => {
+            const { id, status } = req.query;
+            const query = { _id: new ObjectId(id) }
+
+            const updataStatus = {
+                $set: {
+                    donation_status: status
+                }
+            }
+            const result = await requestCollections.updateOne(query, updataStatus)
             res.send(result)
         })
 
