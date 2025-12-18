@@ -310,6 +310,20 @@ async function run() {
 
         })
 
+        //get 3 latest requests
+        app.get("/latest", verifyFBToken, async (req, res) => {
+            const email = req.decoded_email;
+            const query = { requester_email: email }
+            const result = await requestCollections
+                .find(query)
+                .sort({ createdAt: "desc" })
+                .limit(3)
+                .toArray();
+
+            // console.log(result);
+            res.send(result);
+        });
+
 
         //payment
         app.post('/create-payment-checkout', async (req, res) => {
