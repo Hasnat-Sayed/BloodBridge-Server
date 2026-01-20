@@ -72,6 +72,24 @@ async function run() {
             res.send(result)
         })
 
+
+        //get user email for social login
+        app.get('/users/:email', async (req, res) => {
+            try {
+                const email = decodeURIComponent(req.params.email);
+                const user = await userCollections.findOne({ email: email });
+
+                if (!user) {
+                    return res.status(404).json({ message: "User not found" });
+                }
+
+                res.status(200).json(user);
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                res.status(500).json({ message: "Server error", error: error.message });
+            }
+        });
+
         //get user info for profile page
         app.get('/user-profile', verifyFBToken, async (req, res) => {
             const email = req.decoded_email;
@@ -306,7 +324,7 @@ async function run() {
             ]).toArray();
 
             const totalFunds = result[0]?.totalAmount || 0;
-            res.send({ totalDonors, totalRequest,totalFunds })
+            res.send({ totalDonors, totalRequest, totalFunds })
 
         })
 
