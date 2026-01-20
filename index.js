@@ -61,6 +61,7 @@ async function run() {
 
         const requestCollections = database.collection('request')
         const paymentsCollection = database.collection('payments')
+        const reviewCollection = database.collection('reviews')
 
         //save user info
         app.post('/users', async (req, res) => {
@@ -308,6 +309,20 @@ async function run() {
             const result = await requestCollections.updateOne(query, updataStatus)
             res.send(result)
         })
+
+        //create review
+        app.post('/review', verifyFBToken, async (req, res) => {
+            const data = req.body;
+            const result = await reviewCollection.insertOne(data)
+            res.send(result)
+        })
+
+        //get all reviews
+        app.get('/review', async (req, res) => {
+            const result = await reviewCollection.find().toArray();
+            res.status(200).send(result)
+        })
+        
 
         //stats
         app.get('/stats', verifyFBToken, async (req, res) => {
